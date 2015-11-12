@@ -10,10 +10,9 @@ Package.describe({
 
 Package.onUse(function (api) {
     api.versionsFrom('1.2.1');
-    api.use('check');
-    api.use('ecmascript');
-    api.use('email', 'server');
-    api.use('mongo');
+    api.use('check@1.0.6');
+    api.use('email@1.0.7', 'server');
+    api.use('mongo@1.1.2');
     api.use('underscore');
 
     api.addFiles('mailer.js', 'server');
