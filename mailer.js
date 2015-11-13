@@ -44,6 +44,42 @@ Mailer.emails = new Mongo.Collection('jalik-mailerEmails');
 
 if (Meteor.isServer) {
     /**
+     * Returns the URL to mark the email as read
+     * @param emailId
+     * @return {*}
+     */
+    Mailer.getReadLink = function (emailId) {
+        return Meteor.absoluteUrl(Mailer.config.webHook + '/read?emailId=' + emailId);
+    };
+
+    /**
+     * Called when the email has been read
+     * @param emailId
+     * @param request
+     */
+    Mailer.onEmailRead = function (emailId, request) {
+        console.error("Mailer: Email has been read " + emailId);
+    };
+
+    /**
+     * Called when the email has been sent
+     * @param emailId
+     * @param email
+     */
+    Mailer.onEmailSent = function (emailId, email) {
+        console.error("Mailer: Email has been sent " + emailId);
+    };
+
+    /**
+     * Called when an error occurred while sending the email
+     * @param err
+     * @param emailId
+     */
+    Mailer.onError = function (err, emailId) {
+        console.error("Mailer: Error sending email " + emailId, err);
+    };
+
+    /**
      * Queues the email in the mailer task list
      * @param email
      * @return {any}
@@ -96,6 +132,11 @@ if (Meteor.isServer) {
             throw new Meteor.Error(400, "Cannot send email (invalid status)");
         }
 
+        // Add an image that will mark the email as read when loaded
+        if (email.html) {
+            email.html += '<img src="' + Mailer.getReadLink(emailId) + '" style="display: none;">';
+        }
+
         try {
             // Mark email as sending
             Mailer.emails.update(emailId, {
@@ -114,11 +155,11 @@ if (Meteor.isServer) {
                     sentAt: new Date()
                 }
             });
-            console.info("Mailer: email " + email.subject + " sent");
+
+            // Execute callback
+            Mailer.onEmailSent(emailId, email);
 
         } catch (err) {
-            console.error("Mailer: Error sending email " + emailId, err);
-
             // Mark email as failed
             Mailer.emails.update(emailId, {
                 $set: {
@@ -127,6 +168,9 @@ if (Meteor.isServer) {
                     error: err
                 }
             });
+
+            // Execute callback
+            Mailer.onError(err, emailId);
         }
     };
 
@@ -154,7 +198,13 @@ if (Meteor.isServer) {
                     sendAt: 1
                 }
             }).forEach(function (email) {
-                Mailer.send(email._id);
+                if (Mailer.config.async) {
+                    Meteor.setTimeout(function () {
+                        Mailer.send(email._id);
+                    }, 0);
+                } else {
+                    Mailer.send(email._id);
+                }
             });
         }, Mailer.config.interval);
     };

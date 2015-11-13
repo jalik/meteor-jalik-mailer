@@ -11,20 +11,28 @@ Mailer.Config = function (options) {
         cc: null,
         replyTo: null,
         headers: null,
+        async: false,
         interval: 1000 * 60,
-        maxTime: 1000 * 30,
-        priority: 2
+        maxSendingTime: 1000 * 30,
+        priority: 2,
+        webHook: 'mailer'
     }, options);
 
     // Check options
+    if (typeof options.async !== 'boolean') {
+        throw new Meteor.Error('async is not a boolean');
+    }
     if (typeof options.interval !== 'number') {
         throw new Meteor.Error('interval is not a number');
     }
-    if (typeof options.maxTime !== 'number') {
-        throw new Meteor.Error('maxTime is not a number');
+    if (typeof options.maxSendingTime !== 'number') {
+        throw new Meteor.Error('maxSendingTime is not a number');
     }
     if (typeof options.priority !== 'number') {
         throw new Meteor.Error('priority is not a number');
+    }
+    if (typeof options.webHook !== 'string') {
+        throw new Meteor.Error('webHook is not a string');
     }
 
     // Public attributes
@@ -33,9 +41,11 @@ Mailer.Config = function (options) {
     this.cc = options.cc;
     this.replyTo = options.replyTo;
     this.headers = options.headers;
+    this.async = !!options.async;
     this.interval = parseInt(options.interval);
-    this.maxTime = parseInt(options.maxTime);
+    this.maxSendingTime = parseInt(options.maxSendingTime);
     this.priority = parseInt(options.priority);
+    this.webHook = options.webHook;
 };
 
 /**
