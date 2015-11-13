@@ -77,15 +77,6 @@ Mailer.onError = function(err, emailId) {
 };
 ```
 
-## Fetching emails
-
-The emails collection is accessible in `Mailer.emails`.
-
-```js
-// Get all pending emails
-var emails = Mailer.emails.find({status: 'pending'});
-```
-
 ## Events
 
 Some events are hooked so you can execute code when the event occurs.
@@ -97,6 +88,15 @@ Mailer.onEmailRead = function(emailId, httpRequest) {
 Mailer.onEmailSent = function(emailId, email) {
     console.log('The email ' + emailId + ' has been sent to ', (email.to||email.bcc||email.cc));
 };
+```
+
+## Fetching emails
+
+The emails collection is accessible in `Mailer.emails`.
+
+```js
+// Get all pending emails
+var emails = Mailer.emails.find({status: 'pending'});
 ```
 
 ## Status
