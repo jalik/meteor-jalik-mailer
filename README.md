@@ -105,6 +105,6 @@ Here are the different status an email can have :
 * pending : the email has been added to the queue and is waiting to be sent
 * sending : the email is currently sending
 * sent : the email has been sent
-* read : the email has been read (note that it works only with html emails using an embedded <img>)
+* read : the email has been read (note that it works only with html emails using an embedded img tag)
 * failed : an error occurred while sending the email, it will be sent on the next execution
 * delayed : the email will be sent on the next execution because it took too much time to be sent
