@@ -22,6 +22,3 @@ Package.onUse(function (api) {
 
     api.export('Mailer');
 });
-
-Package.onTest(function (api) {
-});

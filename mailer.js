@@ -58,7 +58,7 @@ if (Meteor.isServer) {
      * @param request
      */
     Mailer.onEmailRead = function (emailId, request) {
-        console.error("Mailer: Email has been read " + emailId);
+        console.log("Mailer: Email has been read " + emailId);
     };
 
     /**
@@ -67,7 +67,7 @@ if (Meteor.isServer) {
      * @param email
      */
     Mailer.onEmailSent = function (emailId, email) {
-        console.error("Mailer: Email has been sent " + emailId);
+        console.log("Mailer: Email has been sent " + emailId);
     };
 
     /**
@@ -117,7 +117,7 @@ if (Meteor.isServer) {
     };
 
     /**
-     * Sends a stocked email
+     * Sends an email
      * @param emailId
      */
     Mailer.send = function (emailId) {
