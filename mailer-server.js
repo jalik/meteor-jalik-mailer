@@ -16,7 +16,7 @@ WebApp.connectHandlers.use(function (req, res, next) {
 
         if (result) {
             // Execute callback
-            Mailer.onEmailRead(emailId, req);
+            events.onEmailRead.call(Mailer, emailId, req);
         }
         res.end();
 

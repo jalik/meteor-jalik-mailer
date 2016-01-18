@@ -44,7 +44,7 @@ Mailer.emails = new Mongo.Collection('jalik-mailerEmails');
 
 if (Meteor.isServer) {
 
-    var events = {
+    events = {
         onEmailFailed: new CallbackHelper(),
         onEmailQueued: new CallbackHelper(),
         onEmailRead: new CallbackHelper(),
