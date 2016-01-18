@@ -53,7 +53,7 @@ if (Meteor.isServer) {
 To send an email, you have to add it to the queue using `Mailer.queue(email)`.
 The email object is the same as described in the Meteor documentation, but with extra options.
 You can set the priority of the email (default is 2), you are free to use the value you want, low number means higher priority and high number means low priority.
-You can set the sending date using **sendAt** (default is the current date), the value must be a **Date**.
+You can set the sending date using **queuedAt** (default is the current date), the value must be a **Date**.
 
 ```js
 Mailer.queue({
@@ -62,7 +62,7 @@ Mailer.queue({
     subject: 'Test email',
     text: 'Mailer Service Test',
     priority: 2,
-    sendAt: new Date()
+    queuedAt: new Date()
 });
 ```
 
@@ -82,6 +82,9 @@ Mailer.onError = function(err, emailId) {
 Some events are hooked so you can execute code when the event occurs.
 
 ```js
+Mailer.onEmailQueued = function(emailId, email) {
+    console.log('The email ' + emailId + ' has been sent to ', (email.to||email.bcc||email.cc));
+};
 Mailer.onEmailRead = function(emailId, httpRequest) {
     console.log('The email ' + emailId + ' has been read');
 };

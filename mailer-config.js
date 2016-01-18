@@ -41,7 +41,7 @@ Mailer.Config = function (options) {
     this.cc = options.cc;
     this.replyTo = options.replyTo;
     this.headers = options.headers;
-    this.async = !!options.async;
+    this.async = options.async === true;
     this.interval = parseInt(options.interval);
     this.maxSendingTime = parseInt(options.maxSendingTime);
     this.priority = parseInt(options.priority);

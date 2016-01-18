@@ -36,13 +36,46 @@ Mailer = {
 
 
 /**
- * Emails as tasks for daemon mailer
+ * Collection of email tasks
  * @type {Mongo.Collection}
  */
 Mailer.emails = new Mongo.Collection('jalik-mailerEmails');
 
 
 if (Meteor.isServer) {
+
+    var events = {
+        onEmailFailed: new CallbackHelper(),
+        onEmailQueued: new CallbackHelper(),
+        onEmailRead: new CallbackHelper(),
+        onEmailSent: new CallbackHelper(),
+        onError: new CallbackHelper()
+    };
+
+    Mailer.emails.after.insert(function (userId, doc) {
+        events.onEmailQueued.call(Mailer, doc._id, doc);
+    });
+
+    Mailer.emails.after.update(function (userId, doc, fields, mod) {
+        if (mod && mod.$set) {
+            var $set = mod.$set;
+
+            switch ($set.status) {
+                case 'failed':
+                    events.onEmailFailed.call(Mailer, doc._id, doc);
+                    break;
+
+                case 'pending':
+                    events.onEmailQueued.call(Mailer, doc._id, doc);
+                    break;
+
+                case 'sent':
+                    events.onEmailSent.call(Mailer, doc._id, doc);
+                    break;
+            }
+        }
+    });
+
     /**
      * Returns the URL to mark the email as read
      * @param emailId
@@ -53,36 +86,49 @@ if (Meteor.isServer) {
     };
 
     /**
-     * Called when the email has been read
-     * @param emailId
-     * @param request
+     * Called when an email failed sending
+     * @param callback
      */
-    Mailer.onEmailRead = function (emailId, request) {
-        console.log("Mailer: Email has been read " + emailId);
+    Mailer.onEmailFailed = function (callback) {
+        events.onEmailFailed.add(callback);
     };
 
     /**
-     * Called when the email has been sent
-     * @param emailId
-     * @param email
+     * Called when an email has been queued
+     * @param callback
      */
-    Mailer.onEmailSent = function (emailId, email) {
-        console.log("Mailer: Email has been sent " + emailId);
+    Mailer.onEmailQueued = function (callback) {
+        events.onEmailQueued.add(callback);
+    };
+
+    /**
+     * Called when an email has been read
+     * @param callback
+     */
+    Mailer.onEmailRead = function (callback) {
+        events.onEmailRead.add(callback);
+    };
+
+    /**
+     * Called when an email has been sent
+     * @param callback
+     */
+    Mailer.onEmailSent = function (callback) {
+        events.onEmailSent.add(callback);
     };
 
     /**
      * Called when an error occurred while sending the email
-     * @param err
-     * @param emailId
+     * @param callback
      */
-    Mailer.onError = function (err, emailId) {
-        console.error("Mailer: Error sending email " + emailId, err);
+    Mailer.onError = function (callback) {
+        events.onError.add(callback);
     };
 
     /**
      * Queues the email in the mailer task list
      * @param email
-     * @return {any}
+     * @return {*}
      */
     Mailer.queue = function (email) {
         check(email, Object);
@@ -94,8 +140,7 @@ if (Meteor.isServer) {
             cc: Mailer.config.cc,
             replyTo: Mailer.config.replyTo,
             headers: Mailer.config.headers,
-            priority: 2,
-            sendAt: new Date()
+            priority: 2
         }, email);
 
         if (typeof email.from !== 'string') {
@@ -107,9 +152,11 @@ if (Meteor.isServer) {
         if (typeof email.to !== 'string' && typeof email.bcc !== 'string' && typeof email.cc !== 'string') {
             throw new Meteor.Error(400, "Recipient address is invalid");
         }
-        if (!(email.sendAt instanceof Date)) {
-            throw new Meteor.Error(400, "Sending date is not a Date");
+        if (typeof email.priority !== "number") {
+            throw new Meteor.Error(400, "Priority is not a number");
         }
+
+        email.queuedAt = new Date();
 
         return Mailer.emails.insert(_.extend(email, {
             status: 'pending'
@@ -156,9 +203,6 @@ if (Meteor.isServer) {
                 }
             });
 
-            // Execute callback
-            Mailer.onEmailSent(emailId, email);
-
         } catch (err) {
             // Mark email as failed
             Mailer.emails.update(emailId, {
@@ -170,7 +214,7 @@ if (Meteor.isServer) {
             });
 
             // Execute callback
-            Mailer.onError(err, emailId);
+            events.onError.call(Mailer, err, emailId);
         }
     };
 
@@ -191,11 +235,11 @@ if (Meteor.isServer) {
             // Send failed and pending emails
             Mailer.emails.find({
                 status: {$in: ['delayed', 'failed', 'pending']},
-                sendAt: {$lte: new Date()}
+                queuedAt: {$lte: new Date()}
             }, {
                 sort: {
                     priority: 1,
-                    sendAt: 1
+                    queuedAt: 1
                 }
             }).forEach(function (email) {
                 if (Mailer.config.async) {
