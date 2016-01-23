@@ -79,10 +79,13 @@ if (Meteor.isServer) {
     /**
      * Returns the URL to mark the email as read
      * @param emailId
+     * @param redirect
      * @return {*}
      */
-    Mailer.getReadLink = function (emailId) {
-        return Meteor.absoluteUrl(Mailer.config.webHook + '/read?emailId=' + emailId);
+    Mailer.getReadLink = function (emailId, redirect) {
+        var url = Meteor.absoluteUrl(Mailer.config.webHook + '/read?emailId=' + emailId);
+        redirect && (url += '&redirect=' + encodeURIComponent(redirect));
+        return url;
     };
 
     /**
@@ -176,12 +179,14 @@ if (Meteor.isServer) {
             throw new Meteor.Error(404, "Email not found");
         }
         if (!_.contains(['delayed', 'failed', 'pending'], email.status)) {
-            throw new Meteor.Error(400, "Cannot send email (invalid status)");
+            throw new Meteor.Error(400, "Cannot send email (" + email.status + ")");
         }
+
+        // todo replaces links with a click-count url redirection
 
         // Add an image that will mark the email as read when loaded
         if (email.html) {
-            email.html += '<img src="' + Mailer.getReadLink(emailId) + '" style="display: none;">';
+            email.html += '<img src="' + Mailer.getReadLink(emailId) + '" width="1px" height="1px" style="display: none;">';
         }
 
         try {
