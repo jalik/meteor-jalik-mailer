@@ -182,11 +182,19 @@ if (Meteor.isServer) {
             throw new Meteor.Error(400, "Cannot send email (" + email.status + ")");
         }
 
-        // todo replaces links with a click-count url redirection
+        function replaceLinks(content) {
+            return content.replace(/https?:\/\/[^ "']+/gi, function (url) {
+                return Mailer.getReadLink(emailId, url);
+            });
+        }
 
         // Add an image that will mark the email as read when loaded
         if (email.html) {
             email.html += '<img src="' + Mailer.getReadLink(emailId) + '" width="1px" height="1px" style="display: none;">';
+            email.html = replaceLinks(email.html);
+        }
+        else if (email.text) {
+            email.text = replaceLinks(email.text);
         }
 
         try {

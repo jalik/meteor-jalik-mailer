@@ -19,10 +19,18 @@ WebApp.connectHandlers.use(function (req, res, next) {
             events.onEmailRead.call(Mailer, emailId, req);
         }
 
-        // Return a 1x1 png image
-        var base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
-        res.headers({'Content-Type': 'image/png'});
-        res.end(new Buffer(base64, 'base64').toString());
+        var redirect = req.query && req.query.redirect;
+
+        if (redirect) {
+            res.writeHead(301, {Location: decodeURIComponent(redirect)});
+            res.end();
+
+        } else {
+            // Return a 1x1 png image
+            var base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
+            res.headers({'Content-Type': 'image/png'});
+            res.end(new Buffer(base64, 'base64').toString());
+        }
 
     } else {
         next();
