@@ -161,16 +161,24 @@ if (Meteor.isServer) {
 
         email.queuedAt = new Date();
 
-        return Mailer.emails.insert(_.extend(email, {
-            status: 'pending'
-        }));
+        return Mailer.emails.insert(_.extend(email, {status: 'pending'}));
     };
 
     /**
-     * Sends an email
+     * Sends an email now
+     * @param email
+     * @return {*}
+     */
+    Mailer.send = function (email) {
+        var emailId = this.queue(email);
+        return emailId && this.sendEmail(emailId);
+    };
+
+    /**
+     * Sends an existing email
      * @param emailId
      */
-    Mailer.send = function (emailId) {
+    Mailer.sendEmail = function (emailId) {
         check(emailId, String);
 
         var email = Mailer.emails.findOne(emailId);
@@ -257,10 +265,10 @@ if (Meteor.isServer) {
             }).forEach(function (email) {
                 if (Mailer.config.async) {
                     Meteor.setTimeout(function () {
-                        Mailer.send(email._id);
+                        Mailer.sendEmail(email._id);
                     }, 0);
                 } else {
-                    Mailer.send(email._id);
+                    Mailer.sendEmail(email._id);
                 }
             });
         }, Mailer.config.interval);

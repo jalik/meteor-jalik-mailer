@@ -50,7 +50,20 @@ if (Meteor.isServer) {
 
 ## Sending emails
 
-To send an email, you have to add it to the queue using `Mailer.queue(email)`.
+To send an email, use `Mailer.send(email)`.
+
+```js
+Mailer.queue({
+    from: 'test@mailer.com',
+    to: 'you@example.com',
+    subject: 'Test email',
+    text: 'Mailer Service Test'
+});
+```
+
+## Queuing emails
+
+To send an email using a queue so it's send in a batch, you have to add it to the queue using `Mailer.queue(email)`.
 The email object is the same as described in the Meteor documentation, but with extra options.
 You can set the priority of the email (default is 2), you are free to use the value you want, low number means higher priority and high number means low priority.
 You can set the sending date using **queuedAt** (default is the current date), the value must be a **Date**.
