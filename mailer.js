@@ -256,7 +256,11 @@ if (Meteor.isServer) {
             // Send failed and pending emails
             Mailer.emails.find({
                 status: {$in: ['delayed', 'failed', 'pending']},
-                queuedAt: {$lte: new Date()}
+                queuedAt: {$lte: new Date()},
+                $or: [
+                    {sendAt: {$exists: false}},
+                    {sendAt: {$lte: new Date()}}
+                ]
             }, {
                 sort: {
                     priority: 1,

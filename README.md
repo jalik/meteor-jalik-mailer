@@ -61,6 +61,18 @@ Mailer.queue({
 });
 ```
 
+You can specify a date in the future to send the email using the `sendAt` option.
+
+```js
+Mailer.queue({
+    sendAt: laterDate,
+    from: 'test@mailer.com',
+    to: 'you@example.com',
+    subject: 'Test email',
+    text: 'Mailer Service Test'
+});
+```
+
 ## Queuing emails
 
 To send an email using a queue so it's send in a batch, you have to add it to the queue using `Mailer.queue(email)`.
