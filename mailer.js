@@ -44,6 +44,8 @@ Mailer.emails = new Mongo.Collection('jalik-mailerEmails');
 
 if (Meteor.isServer) {
 
+    var sending = false;
+
     events = {
         onEmailFailed: new CallbackHelper(),
         onEmailQueued: new CallbackHelper(),
@@ -86,6 +88,14 @@ if (Meteor.isServer) {
         var url = Meteor.absoluteUrl(Mailer.config.webHook + '/read?emailId=' + emailId);
         redirect && (url += '&redirect=' + encodeURIComponent(redirect));
         return url;
+    };
+
+    /**
+     * Checks if the mailer is sending emails
+     * @return {boolean}
+     */
+    Mailer.isSending = function () {
+        return sending;
     };
 
     /**
@@ -190,22 +200,26 @@ if (Meteor.isServer) {
             throw new Meteor.Error(400, "Cannot send email (" + email.status + ")");
         }
 
-        function replaceLinks(content) {
-            return content.replace(/https?:\/\/[^ "']+/gi, function (url) {
-                return Mailer.getReadLink(emailId, url);
-            });
-        }
-
-        // Add an image that will mark the email as read when loaded
-        if (email.html) {
-            email.html += '<img src="' + Mailer.getReadLink(emailId) + '" width="1px" height="1px" style="display: none;">';
-            email.html = replaceLinks(email.html);
-        }
-        else if (email.text) {
-            email.text = replaceLinks(email.text);
-        }
+        // Mark the mailer as sending emails
+        sending = true;
 
         try {
+
+            function replaceLinks(content) {
+                return content.replace(/https?:\/\/[^ "']+/gi, function (url) {
+                    return Mailer.getReadLink(emailId, url);
+                });
+            }
+
+            // Add an image that will mark the email as read when loaded
+            if (email.html) {
+                email.html += '<img src="' + Mailer.getReadLink(emailId) + '" width="1px" height="1px" style="display: none;">';
+                email.html = replaceLinks(email.html);
+            }
+            else if (email.text) {
+                email.text = replaceLinks(email.text);
+            }
+
             // Mark email as sending
             Mailer.emails.update(emailId, {
                 $set: {
@@ -237,6 +251,9 @@ if (Meteor.isServer) {
             // Execute callback
             events.onError.call(Mailer, err, emailId);
         }
+
+        // Finish sending emails
+        sending = false;
     };
 
     /**
@@ -244,37 +261,42 @@ if (Meteor.isServer) {
      */
     Mailer.start = function () {
         Meteor.setInterval(function () {
-            // Fix long sending emails
-            Mailer.emails.update({
-                status: 'sending',
-                sendingAt: {$lte: Date.now() - Mailer.config.maxTime}
-            }, {
-                $set: {status: 'delayed'}
+            var now = new Date();
 
-            }, {multi: true});
+            // Do not start task if the mailer is sending emails
+            if (!sending) {
+                // Fix long sending emails
+                Mailer.emails.update({
+                        status: 'sending',
+                        sendingAt: {$lte: new Date(Date.now() - Mailer.config.maxSendingTime)}
+                    },
+                    {$set: {status: 'delayed'}},
+                    {multi: true});
 
-            // Send failed and pending emails
-            Mailer.emails.find({
-                status: {$in: ['delayed', 'failed', 'pending']},
-                queuedAt: {$lte: new Date()},
-                $or: [
-                    {sendAt: {$exists: false}},
-                    {sendAt: {$lte: new Date()}}
-                ]
-            }, {
-                sort: {
-                    priority: 1,
-                    queuedAt: 1
-                }
-            }).forEach(function (email) {
-                if (Mailer.config.async) {
-                    Meteor.setTimeout(function () {
+                // Send failed and pending emails
+                Mailer.emails.find({
+                    status: {$in: ['delayed', 'failed', 'pending']},
+                    queuedAt: {$lte: now},
+                    $or: [
+                        {sendAt: {$exists: false}},
+                        {sendAt: {$lte: now}}
+                    ]
+                }, {
+                    sort: {
+                        priority: 1,
+                        sendAt: 1,
+                        queuedAt: 1
+                    }
+                }).forEach(function (email) {
+                    if (Mailer.config.async) {
+                        Meteor.setTimeout(function () {
+                            Mailer.sendEmail(email._id);
+                        }, 0);
+                    } else {
                         Mailer.sendEmail(email._id);
-                    }, 0);
-                } else {
-                    Mailer.sendEmail(email._id);
-                }
-            });
+                    }
+                });
+            }
         }, Mailer.config.interval);
     };
 }
