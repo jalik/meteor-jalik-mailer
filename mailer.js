@@ -51,7 +51,8 @@ if (Meteor.isServer) {
         onEmailQueued: new CallbackHelper(),
         onEmailRead: new CallbackHelper(),
         onEmailSent: new CallbackHelper(),
-        onError: new CallbackHelper()
+        onError: new CallbackHelper(),
+        onSend: new CallbackHelper()
     };
 
     Mailer.emails.after.insert(function (userId, doc) {
@@ -139,6 +140,14 @@ if (Meteor.isServer) {
     };
 
     /**
+     * Called before sending an email
+     * @param callback
+     */
+    Mailer.onSend = function (callback) {
+        events.onSend.add(callback);
+    };
+
+    /**
      * Queues the email in the mailer task list
      * @param email
      * @return {*}
@@ -210,6 +219,9 @@ if (Meteor.isServer) {
                     return Mailer.getReadLink(emailId, url);
                 });
             }
+
+            // Allow some processing before sending
+            events.onSend.call(Mailer, email);
 
             // Add an image that will mark the email as read when loaded
             if (email.html) {

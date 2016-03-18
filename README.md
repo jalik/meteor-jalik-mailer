@@ -107,14 +107,20 @@ Mailer.onError = function(err, emailId) {
 Some events are hooked so you can execute code when the event occurs.
 
 ```js
+Mailer.onEmailFailed = function(emailId, email) {
+    console.log('The email ' + emailId + ' has failed sending');
+};
 Mailer.onEmailQueued = function(emailId, email) {
-    console.log('The email ' + emailId + ' has been sent to ', (email.to||email.bcc||email.cc));
+    console.log('The email ' + emailId + ' has been queued');
 };
 Mailer.onEmailRead = function(emailId, httpRequest) {
     console.log('The email ' + emailId + ' has been read');
 };
 Mailer.onEmailSent = function(emailId, email) {
-    console.log('The email ' + emailId + ' has been sent to ', (email.to||email.bcc||email.cc));
+    console.log('The email ' + emailId + ' has been sent');
+};
+Mailer.onSend = function(emailId, email) {
+    console.log('Sending email ' + emailId');
 };
 ```
 
