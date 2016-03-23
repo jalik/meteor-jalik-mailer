@@ -46,6 +46,15 @@ if (Meteor.isServer) {
 
     var sending = false;
 
+    // Set collection indexes
+    Mailer.emails._ensureIndex({
+        status: 1,
+        queuedAt: 1,
+        sendingAt: 1,
+        sendAt: 1,
+        sentAt: 1
+    });
+
     events = {
         onEmailFailed: new CallbackHelper(),
         onEmailQueued: new CallbackHelper(),
@@ -253,6 +262,7 @@ if (Meteor.isServer) {
         } catch (err) {
             // Mark email as failed
             Mailer.emails.update(emailId, {
+                $inc: {errors: 1},
                 $set: {
                     status: 'failed',
                     failedAt: new Date(),
@@ -272,19 +282,22 @@ if (Meteor.isServer) {
      * Starts the cron that sends emails
      */
     Mailer.start = function () {
+
+        Meteor.setInterval(function () {
+            // Fix long sending emails
+            Mailer.emails.update({
+                    status: 'sending',
+                    sendingAt: {$lte: new Date(Date.now() - Mailer.config.maxSendingTime)}
+                },
+                {$set: {status: 'delayed'}},
+                {multi: true});
+        }, Mailer.config.maxSendingTime);
+
         Meteor.setInterval(function () {
             var now = new Date();
 
             // Do not start task if the mailer is sending emails
             if (!sending) {
-                // Fix long sending emails
-                Mailer.emails.update({
-                        status: 'sending',
-                        sendingAt: {$lte: new Date(Date.now() - Mailer.config.maxSendingTime)}
-                    },
-                    {$set: {status: 'delayed'}},
-                    {multi: true});
-
                 // Send failed and pending emails
                 Mailer.emails.find({
                     status: {$in: ['delayed', 'failed', 'pending']},
@@ -294,18 +307,21 @@ if (Meteor.isServer) {
                         {sendAt: {$lte: now}}
                     ]
                 }, {
+                    fields: {_id: 1, errors: 1},
                     sort: {
                         priority: 1,
                         sendAt: 1,
                         queuedAt: 1
                     }
                 }).forEach(function (email) {
-                    if (Mailer.config.async) {
-                        Meteor.setTimeout(function () {
+                    if (!email.errors || email.errors <= Mailer.config.retry) {
+                        if (Mailer.config.async) {
+                            Meteor.setTimeout(function () {
+                                Mailer.sendEmail(email._id);
+                            }, 0);
+                        } else {
                             Mailer.sendEmail(email._id);
-                        }, 0);
-                    } else {
-                        Mailer.sendEmail(email._id);
+                        }
                     }
                 });
             }

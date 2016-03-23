@@ -26,6 +26,7 @@ Mailer.config = new Mailer.Config({
     interval: 1000 * 60, // delay for each batch
     maxSendingTime: 1000 * 30, // max time before considering that a sending email has failed
     priority: 2, // default priority
+    retry: 1, // number of time to retry when email sending failed (0 to disable)
     webHook: 'mailer' // web hook path used to mark emails as read
 });
 ```

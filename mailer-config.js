@@ -13,8 +13,9 @@ Mailer.Config = function (options) {
         headers: null,
         async: false,
         interval: 1000 * 60,
-        maxSendingTime: 1000 * 30,
+        maxSendingTime: 1000 * 60,
         priority: 2,
+        retry: 0,
         webHook: 'mailer'
     }, options);
 
@@ -31,6 +32,9 @@ Mailer.Config = function (options) {
     if (typeof options.priority !== 'number') {
         throw new Meteor.Error('priority is not a number');
     }
+    if (typeof options.retry !== 'number') {
+        throw new Meteor.Error('retry is not a number');
+    }
     if (typeof options.webHook !== 'string') {
         throw new Meteor.Error('webHook is not a string');
     }
@@ -45,6 +49,7 @@ Mailer.Config = function (options) {
     this.interval = parseInt(options.interval);
     this.maxSendingTime = parseInt(options.maxSendingTime);
     this.priority = parseInt(options.priority);
+    this.retry = parseInt(options.retry);
     this.webHook = options.webHook;
 };
 
