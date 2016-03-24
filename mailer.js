@@ -282,7 +282,6 @@ if (Meteor.isServer) {
      * Starts the cron that sends emails
      */
     Mailer.start = function () {
-
         Meteor.setInterval(function () {
             // Fix long sending emails
             Mailer.emails.update({
@@ -294,10 +293,11 @@ if (Meteor.isServer) {
         }, Mailer.config.maxSendingTime);
 
         Meteor.setInterval(function () {
-            var now = new Date();
-
             // Do not start task if the mailer is sending emails
             if (!sending) {
+                let now = new Date();
+                let count = 0;
+
                 // Send failed and pending emails
                 Mailer.emails.find({
                     status: {$in: ['delayed', 'failed', 'pending']},
@@ -312,9 +312,12 @@ if (Meteor.isServer) {
                         priority: 1,
                         sendAt: 1,
                         queuedAt: 1
-                    }
+                    },
+                    limit: Mailer.config.maxEmailsPerTask
                 }).forEach(function (email) {
                     if (!email.errors || email.errors <= Mailer.config.retry) {
+                        count += 1;
+
                         if (Mailer.config.async) {
                             Meteor.setTimeout(function () {
                                 Mailer.sendEmail(email._id);

@@ -13,6 +13,7 @@ Mailer.Config = function (options) {
         headers: null,
         async: false,
         interval: 1000 * 60,
+        maxEmailsPerTask: 0,
         maxSendingTime: 1000 * 60,
         priority: 2,
         retry: 0,
@@ -47,6 +48,7 @@ Mailer.Config = function (options) {
     this.headers = options.headers;
     this.async = options.async === true;
     this.interval = parseInt(options.interval);
+    this.maxEmailsPerTask = parseInt(options.maxEmailsPerTask);
     this.maxSendingTime = parseInt(options.maxSendingTime);
     this.priority = parseInt(options.priority);
     this.retry = parseInt(options.retry);

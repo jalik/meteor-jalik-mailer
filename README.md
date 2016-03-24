@@ -21,13 +21,22 @@ All settings are defined using the `Mailer.Config` object.
 
 ```js
 Mailer.config = new Mailer.Config({
-    from: 'me@mailer.com', // default from address
-    async: true, // send emails asynchronously
-    interval: 1000 * 60, // delay for each batch
-    maxSendingTime: 1000 * 30, // max time before considering that a sending email has failed
-    priority: 2, // default priority
-    retry: 1, // number of time to retry when email sending failed (0 to disable)
-    webHook: 'mailer' // web hook path used to mark emails as read
+    // default from address to use
+    from: 'me@mailer.com',
+    // send emails asynchronously
+    async: true,
+    // send emails every 60 seconds
+    interval: 1000 * 60,
+    // send max 5 emails per task (in this example a task is run every 60 seconds) /  (0 to disable)
+    maxEmailsPerTask: 5,
+    // max time before considering that a sending email has failed
+    maxSendingTime: 1000 * 30,
+    // default priority (ex: 1 is more important than 5)
+    priority: 2,
+    // number of time to retry when email sending failed (0 to disable)
+    retry: 1,
+    // web hook path used to mark emails as read
+    webHook: 'mailer'
 });
 ```
 
@@ -54,7 +63,7 @@ if (Meteor.isServer) {
 To send an email, use `Mailer.send(email)`.
 
 ```js
-Mailer.queue({
+Mailer.send({
     from: 'test@mailer.com',
     to: 'you@example.com',
     subject: 'Test email',
@@ -65,7 +74,7 @@ Mailer.queue({
 You can specify a date in the future to send the email using the `sendAt` option.
 
 ```js
-Mailer.queue({
+Mailer.send({
     sendAt: laterDate,
     from: 'test@mailer.com',
     to: 'you@example.com',
