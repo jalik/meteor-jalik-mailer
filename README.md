@@ -130,7 +130,7 @@ Mailer.onEmailSent = function(emailId, email) {
     console.log('The email ' + emailId + ' has been sent');
 };
 Mailer.onSend = function(emailId, email) {
-    console.log('Sending email ' + emailId');
+    console.log('Sending email ' + emailId);
 };
 ```
 
