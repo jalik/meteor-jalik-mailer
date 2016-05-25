@@ -188,8 +188,9 @@ if (Meteor.isServer) {
         }
 
         email.queuedAt = new Date();
+        email.status = 'pending';
 
-        return Mailer.emails.insert(_.extend(email, {status: 'pending'}));
+        return Mailer.emails.insert(email);
     };
 
     /**

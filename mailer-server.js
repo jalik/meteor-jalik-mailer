@@ -28,7 +28,7 @@ WebApp.connectHandlers.use(function (req, res, next) {
         } else {
             // Return a 1x1 png image
             var base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
-            res.headers({'Content-Type': 'image/png'});
+            res.setHeader('Content-Type', 'image/png');
             res.end(new Buffer(base64, 'base64').toString());
         }
 
