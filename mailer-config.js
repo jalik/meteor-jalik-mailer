@@ -1,3 +1,8 @@
+import {_} from 'meteor/underscore';
+import {Meteor} from 'meteor/meteor';
+
+import {Mailer} from './mailer';
+
 /**
  * Mailer configuration
  * @param options

@@ -40,7 +40,7 @@ Mailer.config = new Mailer.Config({
 });
 ```
 
-## Starting the service
+## Start the service
 
 To start the service, just call `Mailer.start()`, it will start a timer that is executed using the **interval** value in milliseconds,
 on each call, the mailer will fetch failed, delayed and pending emails to send them.
@@ -58,9 +58,9 @@ if (Meteor.isServer) {
 }
 ```
 
-## Sending emails
+## Send emails
 
-To send an email, use `Mailer.send(email)`.
+To send an email, use `Mailer.send()`, the content of the email can be raw text if you pass the `text` option, or HTML if you pass `html`.
 
 ```js
 Mailer.send({
@@ -83,7 +83,7 @@ Mailer.send({
 });
 ```
 
-## Queuing emails
+## Queue emails
 
 To send an email using a queue so it's send in a batch, you have to add it to the queue using `Mailer.queue(email)`.
 The email object is the same as described in the Meteor documentation, but with extra options.
@@ -101,7 +101,7 @@ Mailer.queue({
 });
 ```
 
-## Handling errors
+## Handle errors
 
 Sometimes errors can happen, in that case the Mailer will simply change the status of the email to **failed** and will retry to send it on the next execution.
 But if you want to do more things you can overwrite the `Mailer.onError` callback.
@@ -134,7 +134,7 @@ Mailer.onSend = function(emailId, email) {
 };
 ```
 
-## Fetching emails
+## Fetch emails
 
 The emails collection is accessible in `Mailer.emails`.
 
@@ -143,7 +143,7 @@ The emails collection is accessible in `Mailer.emails`.
 var emails = Mailer.emails.find({status: 'pending'});
 ```
 
-## Status
+## Email status
 
 Here are the different status an email can have :
 * pending : the email has been added to the queue and is waiting to be sent
