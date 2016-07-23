@@ -20,6 +20,8 @@ meteor remove jalik:mailer
 All settings are defined using the `Mailer.Config` object.
 
 ```js
+import {Mailer} from 'meteor/jalik:mailer';
+
 Mailer.config = new Mailer.Config({
     // default from address to use
     from: 'me@mailer.com',

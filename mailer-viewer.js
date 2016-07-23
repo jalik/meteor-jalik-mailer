@@ -3,7 +3,8 @@ import {check} from 'meteor/check';
 import {Meteor} from 'meteor/meteor';
 import {WebApp} from 'meteor/webapp';
 
-import {Mailer, events} from './mailer';
+import {Mailer} from './mailer';
+import {events} from './mailer-server';
 
 WebApp.connectHandlers.use(function (req, res, next) {
     let emailId = req.query && req.query.emailId;
