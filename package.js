@@ -1,6 +1,6 @@
 Package.describe({
     name: 'jalik:mailer',
-    version: '0.3.2',
+    version: '0.3.3',
     author: 'karl.stein.pro@gmail.com',
     summary: 'Mailing service with tracking',
     homepage: 'https://github.com/jalik/jalik-mailer',

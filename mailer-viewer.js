@@ -30,14 +30,18 @@ WebApp.connectHandlers.use(function (req, res, next) {
         let redirect = req.query && req.query.redirect;
 
         if (redirect) {
-            res.writeHead(301, {Location: decodeURIComponent(redirect)});
+            res.writeHead(301, {Location: redirect});
             res.end();
 
         } else {
-            // Return a 1x1 png image
-            let base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
-            res.setHeader('Content-Type', 'image/png');
-            res.end(new Buffer(base64, 'base64').toString());
+            // Return a 1x1 transparent image
+            var img = new Buffer([
+                0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00,
+                0x80, 0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x2c,
+                0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02,
+                0x02, 0x44, 0x01, 0x00, 0x3b]);
+            res.writeHead(200, {'Content-Type': 'image/gif'});
+            res.end(img, 'binary');
         }
 
     } else {
