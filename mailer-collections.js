@@ -22,34 +22,23 @@
  * SOFTWARE.
  */
 
-Package.describe({
-    name: "jalik:mailer",
-    version: "0.4.0",
-    author: "karl.stein.pro@gmail.com",
-    summary: "Mailing service with email status tracking",
-    homepage: "https://github.com/jalik/jalik-mailer",
-    git: "https://github.com/jalik/jalik-mailer.git",
-    documentation: "README.md",
-    license: "MIT"
-});
+import {Meteor} from 'meteor/meteor';
+import {Mongo} from 'meteor/mongo';
 
-Package.onUse(function (api) {
-    api.versionsFrom("1.3.5.1");
-    api.use("ecmascript");
-    api.use("email", "server");
-    api.use("jalik:hook-helper@0.2.0");
-    api.use("matb33:collection-hooks@0.7.13");
-    api.use("mongo");
-    api.use("reactive-var");
-    api.use("tracker", "client");
-    api.use("underscore");
-    api.use("webapp", "server");
-    api.mainModule("mailer.js");
-});
 
-Package.onTest(function (api) {
-    api.use("ecmascript");
-    api.use("practicalmeteor:mocha");
-    api.use("jalik:mailer");
-    api.mainModule("mailer-tests.js");
-});
+/**
+ * Collection of email
+ * @type {Mongo.Collection}
+ */
+export const Emails = new Mongo.Collection('jalik-mailerEmails');
+
+if (Meteor.isServer) {
+    // Set collection indexes
+    Emails._ensureIndex({
+        status: 1,
+        queuedAt: 1,
+        sendingAt: -1,
+        sendAt: 1,
+        sentAt: -1
+    });
+}
